@@ -1,155 +1,68 @@
-# pyFoamPP
- 
-Welcome to the Python-Foam-Post-Processing (pyFoamPP) repository! This project offers a comprehensive framework to convert and manipulate OpenFOAM solutions (case files) into Python's Numpy arrays.
+# OpenFOAM post-processing
 
-## Table of Contents
+![Unstructured cell samples mapped to structured velocity-field sections](docs/assets/header.svg)
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Examples](#Examples)
-- [Contributions](#contributions)
-- [License](#license)
+Python utilities for reading OpenFOAM fields and resampling them onto regular NumPy grids. Originally published as **pyFoamPP**, the project uses fluidfoam for field access and local radial-basis interpolation for unstructured meshes.
 
-## Project Overview
+## Quick start
 
-This project builds on the [fluidFoam](https://fluidfoam.readthedocs.io/en/latest/) framework to handle non-structured [OpenFOAM](https://www.openfoam.com/) mesh files. It employs a fast Radial Basis Function (RBF) interpolation algorithm to convert these non-structured grids into structured, 3-dimensional grids with uniform spacing.
+Python 3.10 or newer is recommended.
 
-These 3D grids are stored in user-friendly Numpy arrays and are automatically backed up into compressed files for future use.
+```bash
+git clone https://github.com/EngFlavioMartins/openfoam-postprocessing.git
+cd openfoam-postprocessing
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python examples/plot_sample.py --output outputs/sample.svg
+```
 
+On Windows, activate with `.venv\Scripts\activate`. The example reads the bundled OpenFOAM snapshot directly and saves a velocity-sample plot. An OpenFOAM solver installation is not required to read it.
 
-<p align="center">
-<img src="images/Example.png"  width="90%">
-</p>
+## Notebooks
 
+```bash
+python -m pip install jupyterlab
+python -m jupyter lab
+```
 
-## Features
+Open [Creating_Backups.ipynb](Creating_Backups.ipynb) to resample a case, or [Examples.ipynb](Examples.ipynb) to inspect processed fields. Run notebooks from the repository root.
 
-- **Loading files**: Utilizes [fluidFoam](https://fluidfoam.readthedocs.io/en/latest/)'s framework to read OpenFOAM backup data and convert it into point data.
-- **Data interpolation**: Implements an RBF interpolation algorithm to efficiently convert OpenFOAM grid files into 3-dimensional, uniformly-seeded grids stored as Numpy arrays.
-- **Data analysis**: Provides tools and examples for analyzing the interpolated numerical data, particularly for aerodynamic studies, enabling insights from real-world tests.
-
-
-## Installation
-
-1. Clone the repository using: `git clone https://github.com/MyFlavioMartins/pyFoamPP.git`
-2. Navigate to the project directory: `cd pyFoamPP`
-3. Install the required dependencies: `pip install -r requirements.txt`
-
-## Examples
-
-
-1. Plot the $u_x$-velocity profile along the $x$-axis
-
+For a new unstructured case, place it under `OFBackups/<case-name>/` and set its time, bounds and grid spacing:
 
 ```python
-fig, ax = plt.subplots()
+from Libs.Subroutines import preProcess
 
-mesh = loadMesh('mybackupfilename')
-X = mesh.X
-Y = mesh.Y
-Z = mesh.Z
-P = mesh.P
-Ux = mesh.Ux
-
-yindex = abs(mesh.y-1).argmin() 
-zindex = abs(mesh.z-10).argmin() 
-
-xline = X[:, yindex, zindex]
-uline = Ux[:, yindex, zindex] / Uinf
-
-ax.plot(xline, uline, linestyle[0], linewidth=2, color=myColors[0], label = casedescrip)
-
+preProcess(
+    "429", "OFData",
+    structured=False,
+    domain_bounds=(8, 14, 0.2, 2.5, 8, 12),
+    grid_spacing=0.15,
+)
 ```
 
-Output:
+This call reads velocity `U` and pressure `p`, then writes a binary mesh backup to `Data/OFData`. Choose bounds inside the useful part of your own case.
 
-<p align="center">
-<img src="images/u_x_velocity_profiles.png"  width="80%">
-</p>
+## Repository guide
 
+| Location | Purpose |
+| --- | --- |
+| `Libs/Subroutines.py` | Loading, interpolation and mesh container |
+| `examples/plot_sample.py` | Direct-from-OpenFOAM plotting example |
+| `Creating_Backups.ipynb` | Case-to-array workflow |
+| `Examples.ipynb` | Analysis examples |
+| `OFBackups/OFData/` | Bundled OpenFOAM snapshot |
+| `Data/` | Historical processed example |
+| `docs/assets/header.svg` | Conceptual vector overview |
 
-2. Plot the $u_x$-velocity component onto the (crossflow) $yz$-plane:
+## Data and numerical scope
 
+The resampler uses five neighbours and a linear RBF kernel. It is not conservative remapping and can extrapolate beyond the sampled domain. Check resolution, domain bounds and interpolation error before using the arrays quantitatively.
 
-```pyhon
-fig, ax = plt.subplots()
+The original `structured=True` branch is incomplete; use the documented unstructured path. Its backup writer appends objects to an existing file, so use a fresh case name or move an old backup aside first. Only load pickle backups from trusted sources; the quick-start example avoids them.
 
-ax.set_title('Velocity profile at symmetry section')
+## Contributing and attribution
 
-mesh = loadMesh('mybackupfilename')
-X = mesh.X
-nx, ny, nz = X.shape
+See [CONTRIBUTING.md](CONTRIBUTING.md). Maintained by [Flavio Martins](https://engflaviomartins.github.io/).
 
-ucontour = ax.contourf(mesh.X[:, :, nz//2], 
-                       mesh.Y[:, :, nz//2], 
-                       mesh.Ux[:, :, nz//2]/Uinf, 
-                       extend='both', levels=30, vmin=0.4, vmax=1.0)
-
-## Create a Rectangle patch
-rect1 = patches.Rectangle((9.98, 0.5), 0.08, 1.0, linewidth=0.5, edgecolor='w', hatch='///', zorder=2, fc='c')
-ax.add_patch(rect1)
-
-cbar = fig.colorbar(ucontour, ax=ax, pad=0.04, shrink=0.4)
-cbar.set_label(r'$u_x/U_{\infty}$')
-
-ax.set_xlabel(r'$x/D$')
-ax.set_ylabel(r'$y/D$')
-ax.set(xlim=(7,17), ylim=(0,3))
-ax.set_aspect(1)
-```
-
-<p align="center">
-<img src="images/crossflow_velocity_fields.png"  width="80%">
-</p>
-
-
-3. Plot the velocity field at different (downwind) $x$-coordinates:
-
-```python
-## Get the indexes in the grid where x=xcoord
-xcoords = [11,13,15]
-indexes = findNearest(mesh.x, xcoords) # plot fields at x[indexes]-locations
-
-fig, axs = plt.subplots(1,len(indexes), figsize=(20*cm2in, 9*cm2in), dpi=120)
-
-mesh = loadMesh(filenames)
-
-for i, index in enumerate(indexes):   
-
-      ucontour = axs[i].contourf(mesh.Z[index, :, :]-10, 
-                                    mesh.Y[index, :, :]-1, 
-                                    mesh.Ux[index, :, :]/Uinf,
-                                    extend='both', levels=10, vmin=0.4, vmax=1.0)
-      axs[i].set_aspect(1)
-      axs[i].set_xlabel(r'$z/D$')
-      axs[i].set_ylabel(r'$y/D$')
-      axs[i].set(xlim=(-2,2), ylim=(-1,2))
-      axs[i].set_title( r'$x/D=$ %0.0f' % (xcoords[i]-10) )
-
-      ## Create a rectangular patch:
-      rect1 = patches.Rectangle((-1, -0.5), 2, 1, linewidth=2.0, edgecolor='black', facecolor='none') 
-      axs[i].add_patch(rect1)
-
-cbar = fig.colorbar(ucontour, ax=axs, pad=0.05, shrink=0.6)
-cbar.set_label(r'$u_x/U_{\infty}$')
-```
-
-Output:
-
-
-<p align="center">
-<img src="images/crossflow_sections.png"  width="80%">
-</p>
-
-## Contributions
-
-Contributions are welcome and encouraged! If you have ideas for improving or adding new analysis tools, or enhancing educational resources, feel free to fork this repository and create a pull request. Please ensure your changes align with the project's goals.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE). You're free to use, modify, and distribute the code as long as you include the original license in your distribution.
-
----
-
-Happy exploring the world of aerodynamics! If you have any questions or suggestions, please don't hesitate to reach out to us.
+Built on [fluidfoam](https://fluidfoam.readthedocs.io/) and [SciPy](https://docs.scipy.org/). The older README referred to MIT, but no licence file is present; no licence has been added or changed here.

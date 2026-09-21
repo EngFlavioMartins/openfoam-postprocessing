@@ -1,6 +1,4 @@
-pip install importlib
-pip install pickle
-pip install numpy
-pip install fluidfoam
-pip install scipy
-pip install matplotlib
+numpy>=1.24,<3
+scipy>=1.11,<2
+matplotlib>=3.7,<4
+fluidfoam>=0.2.9,<0.3
