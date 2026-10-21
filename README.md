@@ -1,6 +1,8 @@
 # OpenFOAM post-processing
 
-![Unstructured cell samples mapped to structured velocity-field sections](docs/assets/header.svg)
+**From OpenFOAM cell data to regular NumPy grids.**
+
+![Cross-flow plane of a rotor wake: OpenFOAM cell-centre samples on the left, the same streamwise velocity resampled onto a regular grid on the right](docs/assets/render.webp)
 
 Python utilities for reading OpenFOAM fields and resampling them onto regular NumPy grids. Originally published as **pyFoamPP**, the project uses fluidfoam for field access and local radial-basis interpolation for unstructured meshes.
 
@@ -61,8 +63,22 @@ The resampler uses five neighbours and a linear RBF kernel. It is not conservati
 
 The original `structured=True` branch is incomplete; use the documented unstructured path. Its backup writer appends objects to an existing file, so use a fresh case name or move an old backup aside first. Only load pickle backups from trusted sources; the quick-start example avoids them.
 
-## Contributing and attribution
+## Website image
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Maintained by [Flavio Martins](https://engflaviomartins.github.io/).
+```bash
+pip install pyvista cmcrameri
+python scripts/render/compute_slice.py      # plane x = 12 of the bundled snapshot
+pvpython scripts/render/render_slice.py outputs/render/openfoam-postprocessing.png
+```
 
-Built on [fluidfoam](https://fluidfoam.readthedocs.io/) and [SciPy](https://docs.scipy.org/). The older README referred to MIT, but no licence file is present; no licence has been added or changed here.
+The left half shows the cell centres nearest the plane, sized by their spacing. The right half shows streamwise velocity resampled onto a regular grid with the settings of `interpolateToStructuredMesh`.
+
+## Citing
+
+The bundled snapshot comes from the actuator-surface simulations behind F. A. C. Martins, A. van Zuijlen and C. S. Ferreira (2025), Proof of concept for multirotor systems with vortex-generating modes for regenerative wind energy, *Wind Energy Science* 10, 41–58, [doi:10.5194/wes-10-41-2025](https://doi.org/10.5194/wes-10-41-2025). Please cite that paper if you use the data or this workflow.
+
+GitHub's *Cite this repository* button uses [CITATION.cff](CITATION.cff).
+
+## Contributing and licence
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Maintained by [Flavio Martins](https://engflaviomartins.github.io/). Built on [fluidfoam](https://fluidfoam.readthedocs.io/) and [SciPy](https://docs.scipy.org/). MIT licence; see [LICENSE](LICENSE).
