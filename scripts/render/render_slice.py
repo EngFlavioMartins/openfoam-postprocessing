@@ -1,60 +1,51 @@
-"""ParaView (pvpython) render: cell-centre samples beside the resampled regular grid.
+"""ParaView (pvpython) render in the OpenONDA style: OpenFOAM cell-centre samples
+beside the same plane resampled onto a regular grid.
 
 Usage: pvpython render_slice.py <output png> [width height]
 Reads outputs/render/{samples,grid}.vtp from compute_slice.py.
-Colour: Ux with Crameri's "lajolla" (dark = slow wake), common to both halves.
+
+Black background. Both halves show the velocity deficit 1 - u_x/U_inf with
+thesis_blue on one common range: the slow wake glows, the free stream is the
+darkest teal of the map (kept visible so the sample spacing shows).
 """
-import json
 import sys
 from pathlib import Path
 
-from paraview.simple import (ColorBy, GetActiveViewOrCreate, GetColorTransferFunction, Glyph,
-                             SaveScreenshot, Show, XMLPolyDataReader)
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import onda_style as style  # noqa: E402
+from paraview.simple import Calculator, Glyph, Show, XMLPolyDataReader  # noqa: E402
 
 out = Path(sys.argv[1])
-width, height = (int(a) for a in (sys.argv[2:4] if len(sys.argv) > 3 else (2400, 1600)))
-HERE = Path(__file__).resolve().parent
+width, height = (int(a) for a in (sys.argv[2:4] if len(sys.argv) > 3 else (2400, 1500)))
 DATA = HERE.parents[1] / "outputs" / "render"
-cmap = json.loads((HERE / "lajolla.json").read_text())
+U_INF, DEFICIT_MAX = 4.0, 0.6
 
-view = GetActiveViewOrCreate("RenderView")
-view.ViewSize = [width, height]
-view.OrientationAxesVisibility = 0
-view.UseColorPaletteForBackground = 0
-view.Background = [1, 1, 1]
-view.EnableRayTracing = 1
-view.BackEnd = "OSPRay raycaster"
-view.SamplesPerPixel = 32
-view.AmbientSamples = 8
+view = style.setup_view(width, height)
+lut = style.lut("deficit", "thesis_blue", 0.0, DEFICIT_MAX)
 
-lut = GetColorTransferFunction("Ux")
-lut.RGBPoints = cmap["lajolla"]
-lut.ColorSpace = "RGB"
-lut.AutomaticRescaleRangeMode = "Never"
-
-spheres = Glyph(Input=XMLPolyDataReader(FileName=[str(DATA / "samples.vtp")]), GlyphType="Sphere")
+samples = Calculator(Input=XMLPolyDataReader(FileName=[str(DATA / "samples.vtp")]),
+                     ResultArrayName="deficit", Function=f"1 - Ux/{U_INF}")
+spheres = Glyph(Input=samples, GlyphType="Sphere")
 spheres.GlyphType.Radius = 1.0
 spheres.GlyphType.ThetaResolution = 16
 spheres.GlyphType.PhiResolution = 16
 spheres.ScaleArray = ["POINTS", "radius"]
 spheres.ScaleFactor = 1.0
 spheres.GlyphMode = "All Points"
-d = Show(spheres, view)
-ColorBy(d, ("POINTS", "Ux"))
-d.LookupTable = lut
-d.SetScalarBarVisibility(view, False)
-d.Specular, d.SpecularPower = 0.4, 40
+style.mapped(Show(spheres, view), "deficit", lut, roughness=0.35)
 
-d = Show(XMLPolyDataReader(FileName=[str(DATA / "grid.vtp")]), view)
-ColorBy(d, ("CELLS", "Ux"))
-d.LookupTable = lut
-d.SetScalarBarVisibility(view, False)
-d.Ambient, d.Diffuse = 0.4, 0.6
-lut.RescaleTransferFunction(*cmap["range"])
+grid = Calculator(Input=XMLPolyDataReader(FileName=[str(DATA / "grid.vtp")]), AttributeType="Cell Data",
+                  ResultArrayName="deficit", Function=f"1 - Ux/{U_INF}")
+d = Show(grid, view)
+style.mapped(d, "deficit", lut, assoc="CELLS")
+d.Interpolation = "Flat"
+d.Ambient, d.Diffuse = 1.0, 0.0                 # unlit: the field glows
+lut.RescaleTransferFunction(0.0, DEFICIT_MAX)
 
-view.CameraPosition = [17.0, 4.6, 6.2]
-view.CameraFocalPoint = [12.0, 1.3, 10.0]
+view.CameraPosition = [18.3, 4.7, 6.3]
+view.CameraFocalPoint = [12.0, 1.3, 9.45]
 view.CameraViewUp = [0, 1, 0]
 view.CameraViewAngle = 30
-SaveScreenshot(str(out), view, ImageResolution=[width, height], TransparentBackground=0)
+style.save(view, out, width, height)
 print(out)

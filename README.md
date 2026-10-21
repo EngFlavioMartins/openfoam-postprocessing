@@ -2,83 +2,47 @@
 
 **From OpenFOAM cell data to regular NumPy grids.**
 
-![Cross-flow plane of a rotor wake: OpenFOAM cell-centre samples on the left, the same streamwise velocity resampled onto a regular grid on the right](docs/assets/render.webp)
+![One wake plane: OpenFOAM cell centres on the left and the same velocity deficit on a regular grid on the right](docs/assets/render.webp)
 
-Python utilities for reading OpenFOAM fields and resampling them onto regular NumPy grids. Originally published as **pyFoamPP**, the project uses fluidfoam for field access and local radial-basis interpolation for unstructured meshes.
+Read OpenFOAM fields with [fluidfoam](https://fluidfoam.readthedocs.io/) and resample them onto regular arrays with local radial-basis interpolation, ready for profiles and planar sections. A rotor-wake snapshot is included; no OpenFOAM installation is needed to read it.
 
-## Quick start
-
-Python 3.10 or newer is recommended.
+## Get started
 
 ```bash
 git clone https://github.com/EngFlavioMartins/openfoam-postprocessing.git
 cd openfoam-postprocessing
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python examples/plot_sample.py --output outputs/sample.svg
+pip install -r requirements.txt
+python examples/plot_sample.py
 ```
 
-On Windows, activate with `.venv\Scripts\activate`. The example reads the bundled OpenFOAM snapshot directly and saves a velocity-sample plot. An OpenFOAM solver installation is not required to read it.
+This plots one plane of the bundled snapshot to `outputs/sample.svg`. The notebooks [Creating_Backups.ipynb](Creating_Backups.ipynb) and [Examples.ipynb](Examples.ipynb) show the full workflow.
 
-## Notebooks
+## Make the figure above
 
 ```bash
-python -m pip install jupyterlab
-python -m jupyter lab
+sh scripts/render/make_figure.sh
 ```
 
-Open [Creating_Backups.ipynb](Creating_Backups.ipynb) to resample a case, or [Examples.ipynb](Examples.ipynb) to inspect processed fields. Run notebooks from the repository root.
+You need [ParaView](https://www.paraview.org/download/) (for `pvpython`), a LaTeX installation, and `pip install pyvista pillow`.
 
-For a new unstructured case, place it under `OFBackups/<case-name>/` and set its time, bounds and grid spacing:
+## Cite
 
-```python
-from Libs.Subroutines import preProcess
+The bundled data comes from the work below. If you use the data or this workflow, please cite:
 
-preProcess(
-    "429", "OFData",
-    structured=False,
-    domain_bounds=(8, 14, 0.2, 2.5, 8, 12),
-    grid_spacing=0.15,
-)
+```bibtex
+@article{martins2025multirotor,
+  author  = {Martins, Flavio A. C. and van Zuijlen, A. and Ferreira, C. S.},
+  title   = {Proof of Concept for Multirotor Systems with Vortex-Generating Modes for Regenerative Wind Energy: A Study Based on Numerical Simulations and Experimental Data},
+  journal = {Wind Energy Science},
+  volume  = {10},
+  pages   = {41--58},
+  year    = {2025},
+  doi     = {10.5194/wes-10-41-2025}
+}
 ```
 
-This call reads velocity `U` and pressure `p`, then writes a binary mesh backup to `Data/OFData`. Choose bounds inside the useful part of your own case.
+GitHub's **Cite this repository** button (from [CITATION.cff](CITATION.cff)) gives the same reference in other formats.
 
-## Repository guide
+## Licence
 
-| Location | Purpose |
-| --- | --- |
-| `Libs/Subroutines.py` | Loading, interpolation and mesh container |
-| `examples/plot_sample.py` | Direct-from-OpenFOAM plotting example |
-| `Creating_Backups.ipynb` | Case-to-array workflow |
-| `Examples.ipynb` | Analysis examples |
-| `OFBackups/OFData/` | Bundled OpenFOAM snapshot |
-| `Data/` | Historical processed example |
-| `docs/assets/header.svg` | Conceptual vector overview |
-
-## Data and numerical scope
-
-The resampler uses five neighbours and a linear RBF kernel. It is not conservative remapping and can extrapolate beyond the sampled domain. Check resolution, domain bounds and interpolation error before using the arrays quantitatively.
-
-The original `structured=True` branch is incomplete; use the documented unstructured path. Its backup writer appends objects to an existing file, so use a fresh case name or move an old backup aside first. Only load pickle backups from trusted sources; the quick-start example avoids them.
-
-## Website image
-
-```bash
-pip install pyvista cmcrameri
-python scripts/render/compute_slice.py      # plane x = 12 of the bundled snapshot
-pvpython scripts/render/render_slice.py outputs/render/openfoam-postprocessing.png
-```
-
-The left half shows the cell centres nearest the plane, sized by their spacing. The right half shows streamwise velocity resampled onto a regular grid with the settings of `interpolateToStructuredMesh`.
-
-## Citing
-
-The bundled snapshot comes from the actuator-surface simulations behind F. A. C. Martins, A. van Zuijlen and C. S. Ferreira (2025), Proof of concept for multirotor systems with vortex-generating modes for regenerative wind energy, *Wind Energy Science* 10, 41–58, [doi:10.5194/wes-10-41-2025](https://doi.org/10.5194/wes-10-41-2025). Please cite that paper if you use the data or this workflow.
-
-GitHub's *Cite this repository* button uses [CITATION.cff](CITATION.cff).
-
-## Contributing and licence
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Maintained by [Flavio Martins](https://engflaviomartins.github.io/). Built on [fluidfoam](https://fluidfoam.readthedocs.io/) and [SciPy](https://docs.scipy.org/). MIT licence; see [LICENSE](LICENSE).
+MIT; see [LICENSE](LICENSE).

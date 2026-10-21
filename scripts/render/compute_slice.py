@@ -10,10 +10,8 @@ takes the cross-flow plane x = X0 over the README's example region
 The resampler uses the settings of Libs/Subroutines.interpolateToStructuredMesh:
 scipy RBFInterpolator, five neighbours, linear kernel.
 """
-import json
 from pathlib import Path
 
-import cmcrameri.cm as cmc
 import numpy as np
 import pyvista as pv
 from fluidfoam import readmesh, readvector
@@ -56,7 +54,4 @@ print(f"{Yc.size} grid cells at spacing {DX}")
 OUT.mkdir(parents=True, exist_ok=True)
 samples.save(OUT / "samples.vtp")
 grid.save(OUT / "grid.vtp")
-lo, hi = float(np.percentile(U[0, near], 1)), float(np.percentile(U[0, near], 99))
-(Path(__file__).parent / "lajolla.json").write_text(json.dumps(
-    {"range": [lo, hi], "lajolla": [float(v) for q in np.linspace(0, 1, 65) for v in (lo + q * (hi - lo), *cmc.lajolla(0.16 + 0.76 * q)[:3])]}))
 print("wrote", OUT)
