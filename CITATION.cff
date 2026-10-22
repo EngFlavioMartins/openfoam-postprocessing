@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code or its data, please cite the paper below."
+title: "OpenFOAM post-processing"
+type: software
+license: MIT
+authors:
+  - family-names: Martins
+    given-names: Flavio A. C.
+    orcid: https://orcid.org/0000-0002-1374-5760
+repository-code: "https://github.com/EngFlavioMartins/openfoam-postprocessing"
+preferred-citation:
+  type: article
+  title: "Proof of Concept for Multirotor Systems with Vortex-Generating Modes for Regenerative Wind Energy: A Study Based on Numerical Simulations and Experimental Data"
+  authors:
+    - family-names: Martins
+      given-names: Flavio A. C.
+    - family-names: van Zuijlen
+      given-names: A.
+    - family-names: Ferreira
+      given-names: C. S.
+  journal: "Wind Energy Science"
+  volume: 10
+  start: 41
+  end: 58
+  year: 2025
+  doi: "10.5194/wes-10-41-2025"
