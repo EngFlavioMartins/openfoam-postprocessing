@@ -2,7 +2,7 @@
 
 **From OpenFOAM cell data to regular NumPy grids.**
 
-![One wake plane: OpenFOAM cell centres on the left and the same velocity deficit on a regular grid on the right](docs/assets/render.webp)
+<p align="center"><img src="docs/assets/render.webp" width="560" alt="One wake plane: OpenFOAM cell centres on the left and the same velocity deficit on a regular grid on the right"></p>
 
 Read OpenFOAM fields with [fluidfoam](https://fluidfoam.readthedocs.io/) and resample them onto regular arrays with local radial-basis interpolation, ready for profiles and planar sections. A rotor-wake snapshot is included; no OpenFOAM installation is needed to read it.
 

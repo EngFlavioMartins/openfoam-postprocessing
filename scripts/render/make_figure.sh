@@ -10,5 +10,6 @@ R=scripts/render
 O=outputs/render
 mkdir -p $O
 python $R/compute_slice.py
-$PV $R/render_slice.py $O/slice-raw.png
-python $R/compose_slice.py $O/slice-raw.png $O/openfoam-postprocessing
+$PV $R/render_slice.py $O/samples-raw.png samples
+$PV $R/render_slice.py $O/grid-raw.png grid
+python $R/compose_slice.py $O/samples-raw.png $O/grid-raw.png $O/openfoam-postprocessing

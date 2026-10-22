@@ -1,7 +1,7 @@
 """ParaView (pvpython) render in the OpenONDA style: OpenFOAM cell-centre samples
 beside the same plane resampled onto a regular grid.
 
-Usage: pvpython render_slice.py <output png> [width height]
+Usage: pvpython render_slice.py <output png> <samples|grid> [width height]
 Reads outputs/render/{samples,grid}.vtp from compute_slice.py.
 
 Black background. Both halves show the velocity deficit 1 - u_x/U_inf with
@@ -16,8 +16,8 @@ sys.path.insert(0, str(HERE))
 import onda_style as style  # noqa: E402
 from paraview.simple import Calculator, Glyph, Show, XMLPolyDataReader  # noqa: E402
 
-out = Path(sys.argv[1])
-width, height = (int(a) for a in (sys.argv[2:4] if len(sys.argv) > 3 else (2400, 1500)))
+out, which = Path(sys.argv[1]), sys.argv[2]
+width, height = (int(a) for a in (sys.argv[3:5] if len(sys.argv) > 4 else (3000, 1875)))
 DATA = HERE.parents[1] / "outputs" / "render"
 U_INF, DEFICIT_MAX = 4.0, 0.6
 
@@ -33,14 +33,16 @@ spheres.GlyphType.PhiResolution = 16
 spheres.ScaleArray = ["POINTS", "radius"]
 spheres.ScaleFactor = 1.0
 spheres.GlyphMode = "All Points"
-style.mapped(Show(spheres, view), "deficit", lut, roughness=0.35)
+if which == "samples":
+    style.mapped(Show(spheres, view), "deficit", lut, roughness=0.35)
 
 grid = Calculator(Input=XMLPolyDataReader(FileName=[str(DATA / "grid.vtp")]), AttributeType="Cell Data",
                   ResultArrayName="deficit", Function=f"1 - Ux/{U_INF}")
-d = Show(grid, view)
-style.mapped(d, "deficit", lut, assoc="CELLS")
-d.Interpolation = "Flat"
-d.Ambient, d.Diffuse = 1.0, 0.0                 # unlit: the field glows
+if which == "grid":
+    d = Show(grid, view)
+    style.mapped(d, "deficit", lut, assoc="CELLS")
+    d.Interpolation = "Flat"
+    d.Ambient, d.Diffuse = 1.0, 0.0             # unlit: the field glows
 lut.RescaleTransferFunction(0.0, DEFICIT_MAX)
 
 view.CameraPosition = [18.3, 4.7, 6.3]
