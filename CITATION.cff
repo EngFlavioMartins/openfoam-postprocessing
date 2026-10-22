@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this code or its data, please cite the paper below."
 title: "OpenFOAM post-processing"
 type: software
-license: MIT
+license: Apache-2.0
 abstract: "Read OpenFOAM fields in Python and resample unstructured cell data onto regular NumPy grids with local RBF interpolation (fluidfoam, SciPy)."
 keywords:
   - "OpenFOAM"
