@@ -1,5 +1,13 @@
 # OpenFOAM post-processing
 
+<p align="center">
+  <a href="https://github.com/EngFlavioMartins/openfoam-postprocessing/actions/workflows/example.yml"><img src="https://github.com/EngFlavioMartins/openfoam-postprocessing/actions/workflows/example.yml/badge.svg" alt="Example smoke test"></a>
+  <a href="https://doi.org/10.5194/wes-10-41-2025"><img src="https://img.shields.io/badge/paper-10.5194%2Fwes--10--41--2025-1F6FEB" alt="paper: 10.5194/wes-10-41-2025"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white" alt="python: 3.10+"></a>
+  <a href="https://github.com/EngFlavioMartins/openfoam-postprocessing/blob/HEAD/LICENSE"><img src="https://img.shields.io/badge/license-MIT-2E7D32" alt="license: MIT"></a>
+  <a href="https://engflaviomartins.github.io/#openfoam-postprocessing"><img src="https://img.shields.io/badge/website-research%20page-15212B" alt="website: research page"></a>
+</p>
+
 **From OpenFOAM cell data to regular NumPy grids.**
 
 <p align="center"><img src="docs/assets/render.webp" width="560" alt="One wake plane: OpenFOAM cell centres on the left and the same velocity deficit on a regular grid on the right"></p>
